@@ -329,7 +329,7 @@ public:
 	}
 
 	// fuse single direct state measurement (eg NED velocity, NED position, mag earth field, etc)
-	bool fuseDirectStateMeasurement(const float innov, const float innov_var, const float R, const int state_index);
+	void fuseDirectStateMeasurement(const float innov, const float innov_var, const float R, const int state_index);
 
 	// gyro bias
 	const Vector3f &getGyroBias() const { return _state.gyro_bias; } // get the gyroscope bias in rad/s
@@ -483,7 +483,7 @@ public:
 	const auto &aid_src_aux_vel() const { return _aid_src_aux_vel; }
 #endif // CONFIG_EKF2_AUXVEL
 
-	bool measurementUpdate(VectorState &K, const VectorState &H, const float R, const float innovation)
+	void measurementUpdate(VectorState &K, const VectorState &H, const float R, const float innovation)
 	{
 		clearInhibitedStateKalmanGains(K);
 
@@ -531,7 +531,6 @@ public:
 
 		// apply the state corrections
 		fuse(K, innovation);
-		return true;
 	}
 
 	bool resetGlobalPosToExternalObservation(double latitude, double longitude, float altitude, float eph, float epv,
@@ -1005,7 +1004,8 @@ private:
 	void fuseBodyVelocity(estimator_aid_source1d_s &aid_src, float &innov_var, VectorState &H)
 	{
 		VectorState Kfusion = P * H / innov_var;
-		aid_src.fused = measurementUpdate(Kfusion, H, aid_src.observation_variance, aid_src.innovation);
+		measurementUpdate(Kfusion, H, aid_src.observation_variance, aid_src.innovation);
+		aid_src.fused = true;
 	}
 #endif // CONFIG_EKF2_EXTERNAL_VISION
 
